@@ -18,7 +18,7 @@ google-auth-httplib2==0.2.0
 # Web scraping and API calls
 requests==2.31.0
 beautifulsoup4==4.12.2
-httpx==0.25.2
+httpx>=0.24.0,<0.25.0
 
 # Embeddings and vector search
 sentence-transformers==2.2.2
