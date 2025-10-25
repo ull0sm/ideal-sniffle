@@ -42,7 +42,7 @@ class ConversationManager:
         conversation_id: int, 
         role: str, 
         content: str,
-        metadata: Optional[Dict] = None
+        msg_metadata: Optional[Dict] = None
     ) -> Message:
         """Add a message to a conversation."""
         with get_db() as db:
@@ -50,7 +50,7 @@ class ConversationManager:
                 conversation_id=conversation_id,
                 role=role,
                 content=content,
-                metadata=metadata or {}
+                msg_metadata=msg_metadata or {}
             )
             db.add(message)
             

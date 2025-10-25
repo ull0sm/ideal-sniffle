@@ -280,7 +280,7 @@ def render_chat_page():
             st.session_state.conversation_id,
             "assistant",
             response,
-            metadata={"context_used": bool(context)}
+            msg_metadata={"context_used": bool(context)}
         )
         
         # Log query

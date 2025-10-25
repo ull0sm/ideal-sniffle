@@ -50,7 +50,7 @@ class Message(Base):
     conversation_id = Column(Integer, ForeignKey("conversations.id"), nullable=False)
     role = Column(String(50), nullable=False)  # 'user' or 'assistant'
     content = Column(Text, nullable=False)
-    metadata = Column(JSON)  # Store additional data like links, sources
+    msg_metadata = Column(JSON)  # Store additional data like links, sources
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships
@@ -95,6 +95,6 @@ class KnowledgeBase(Base):
     content = Column(Text, nullable=False)
     source = Column(String(500))  # URL or API source
     category = Column(String(100))  # 'placement', 'internship', 'role', etc.
-    metadata = Column(JSON)
+    kb_metadata = Column(JSON)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

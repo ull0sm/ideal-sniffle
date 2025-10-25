@@ -34,7 +34,7 @@ class KnowledgeRetriever:
             st.warning(f"ChromaDB initialization: {str(e)}")
             self.collection = None
     
-    def add_knowledge(self, title: str, content: str, source: str, category: str, metadata: Optional[Dict] = None):
+    def add_knowledge(self, title: str, content: str, source: str, category: str, kb_metadata: Optional[Dict] = None):
         """Add knowledge to the database and vector store."""
         # Save to PostgreSQL
         with get_db() as db:
@@ -43,7 +43,7 @@ class KnowledgeRetriever:
                 content=content,
                 source=source,
                 category=category,
-                metadata=metadata or {}
+                kb_metadata=kb_metadata or {}
             )
             db.add(kb_entry)
             db.commit()
