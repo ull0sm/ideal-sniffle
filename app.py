@@ -97,17 +97,15 @@ def render_login_page():
         
         # OAuth configuration
         if settings.GOOGLE_CLIENT_ID and settings.GOOGLE_CLIENT_SECRET:
-            # Create OAuth2 client with explicit revocation endpoint auth method
+            # Create OAuth2 client without revocation endpoint to avoid compatibility issues
             token_endpoint = "https://oauth2.googleapis.com/token"
-            revoke_endpoint = "https://oauth2.googleapis.com/revoke"
             
             client = OAuth2(
                 settings.GOOGLE_CLIENT_ID,
                 settings.GOOGLE_CLIENT_SECRET,
                 "https://accounts.google.com/o/oauth2/v2/auth",
-                token_endpoint,
-                revoke_token_endpoint=revoke_endpoint,
-                revocation_endpoint_auth_method="client_secret_post",
+                token_endpoint=token_endpoint,
+                revoke_token_endpoint=None,
             )
             
             oauth2 = OAuth2Component(
