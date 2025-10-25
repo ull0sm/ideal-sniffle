@@ -2,7 +2,7 @@
 
 import streamlit as st
 from streamlit_oauth import OAuth2Component
-from httpx_oauth.oauth2 import BaseOAuth2
+from httpx_oauth.oauth2 import OAuth2
 import os
 import time
 
@@ -101,7 +101,7 @@ def render_login_page():
             token_endpoint = "https://oauth2.googleapis.com/token"
             revoke_endpoint = "https://oauth2.googleapis.com/revoke"
             
-            client = BaseOAuth2(
+            client = OAuth2(
                 settings.GOOGLE_CLIENT_ID,
                 settings.GOOGLE_CLIENT_SECRET,
                 "https://accounts.google.com/o/oauth2/v2/auth",
