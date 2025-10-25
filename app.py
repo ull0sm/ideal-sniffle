@@ -101,7 +101,7 @@ def render_login_page():
                 settings.GOOGLE_CLIENT_SECRET,
                 "https://accounts.google.com/o/oauth2/v2/auth",
                 "https://oauth2.googleapis.com/token",
-                "https://oauth2.googleapis.com/token",
+                None,  # disable revocation endpoint to avoid MissingRevokeTokenAuthMethodError
                 "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
             )
             
