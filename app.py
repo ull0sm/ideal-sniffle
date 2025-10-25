@@ -2,6 +2,7 @@
 
 import streamlit as st
 from streamlit_oauth import OAuth2Component
+from httpx_oauth.oauth2 import BaseOAuth2
 import os
 import time
 
@@ -96,13 +97,24 @@ def render_login_page():
         
         # OAuth configuration
         if settings.GOOGLE_CLIENT_ID and settings.GOOGLE_CLIENT_SECRET:
+            # Create OAuth2 client with explicit revocation endpoint auth method
+            token_endpoint = "https://oauth2.googleapis.com/token"
+            revoke_endpoint = "https://oauth2.googleapis.com/revoke"
+            
+            client = BaseOAuth2(
+                settings.GOOGLE_CLIENT_ID,
+                settings.GOOGLE_CLIENT_SECRET,
+                "https://accounts.google.com/o/oauth2/v2/auth",
+                token_endpoint,
+                revoke_token_endpoint=revoke_endpoint,
+                revocation_endpoint_auth_method="client_secret_post",
+            )
+            
             oauth2 = OAuth2Component(
                 settings.GOOGLE_CLIENT_ID,
                 settings.GOOGLE_CLIENT_SECRET,
                 "https://accounts.google.com/o/oauth2/v2/auth",
-                "https://oauth2.googleapis.com/token",
-                None,  # disable revocation endpoint to avoid MissingRevokeTokenAuthMethodError
-                "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
+                client=client,
             )
             
             result = oauth2.authorize_button(
