@@ -19,6 +19,7 @@ google-auth-httplib2==0.2.0
 requests==2.31.0
 beautifulsoup4==4.12.2
 httpx>=0.24.0,<0.25.0
+httpx-oauth>=0.13.0,<0.14.0
 
 # Embeddings and vector search
 sentence-transformers==2.2.2
