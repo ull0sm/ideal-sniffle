@@ -41,7 +41,7 @@ Always be helpful, accurate, and encouraging!"""
     def __init__(self):
         """Initialize Gemini chatbot."""
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        self.model = genai.GenerativeModel('gemini-pro')
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
         
     def generate_response(
         self, 
