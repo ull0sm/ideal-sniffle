@@ -4,6 +4,7 @@ import streamlit as st
 from streamlit_oauth import OAuth2Component
 import os
 import time
+import urllib.parse
 
 # Import utilities
 from config.settings import settings
@@ -97,25 +98,33 @@ def render_login_page():
         st.markdown("---")
         
         if settings.GOOGLE_CLIENT_ID and settings.GOOGLE_CLIENT_SECRET:
-            # Using Streamlit button for Google OAuth
-            if st.button("Login with Google"):
-                from google_auth_oauthlib.flow import Flow
-                
-                flow = Flow.from_client_config(
-                    {
-                        "web": {
-                            "client_id": settings.GOOGLE_CLIENT_ID,
-                            "client_secret": settings.GOOGLE_CLIENT_SECRET,
-                            "auth_uri": "https://accounts.google.com/o/oauth2/v2/auth",
-                            "token_uri": "https://oauth2.googleapis.com/token",
-                            "redirect_uris": [settings.OAUTH_REDIRECT_URI],
-                        }
-                    },
-                    scopes=["email", "profile"]
-                )
-                
-                auth_url, _ = flow.authorization_url(prompt="consent")
-                st.experimental_set_query_params(next=auth_url)  # Redirect user
+            # Create the Google OAuth flow
+            flow = Flow.from_client_config(
+                {
+                    "web": {
+                        "client_id": settings.GOOGLE_CLIENT_ID,
+                        "client_secret": settings.GOOGLE_CLIENT_SECRET,
+                        "auth_uri": "https://accounts.google.com/o/oauth2/v2/auth",
+                        "token_uri": "https://oauth2.googleapis.com/token",
+                        "redirect_uris": [settings.OAUTH_REDIRECT_URI],
+                    }
+                },
+                scopes=["email", "profile"],
+                redirect_uri=settings.OAUTH_REDIRECT_URI
+            )
+            
+            # Generate authorization URL
+            auth_url, _ = flow.authorization_url(prompt="consent")
+            
+            # Display clickable link/button that navigates to Google OAuth
+            # Using HTML anchor with target="_self" to navigate in same tab
+            st.markdown(
+                f'<a href="{auth_url}" target="_self" style="display: inline-block; '
+                f'padding: 0.5rem 2rem; background-color: #4285F4; color: white; '
+                f'text-decoration: none; border-radius: 0.3rem; font-weight: 500; '
+                f'text-align: center;">🔐 Login with Google</a>',
+                unsafe_allow_html=True
+            )
         else:
             st.warning("⚠️ Google OAuth not configured. Using demo mode.")
             if st.button("Continue in Demo Mode", type="primary"):
@@ -371,6 +380,78 @@ def render_admin_dashboard():
 def main():
     """Main application entry point."""
     initialize_app()
+    
+    # Handle OAuth callback
+    query_params = st.experimental_get_query_params()
+    
+    # Check for OAuth error
+    if 'error' in query_params:
+        st.error(f"❌ Authentication error: {query_params.get('error', ['Unknown error'])[0]}")
+        st.experimental_set_query_params()  # Clear query params
+        return
+    
+    # Check for OAuth authorization code
+    if 'code' in query_params and not st.session_state.authenticated:
+        try:
+            # Get the authorization code and state
+            code = query_params['code'][0]
+            state = query_params.get('state', [None])[0]
+            
+            # Reconstruct the authorization response URL
+            # This includes the full callback URL with query parameters
+            base_url = settings.OAUTH_REDIRECT_URI
+            authorization_response = f"{base_url}?code={code}"
+            if state:
+                authorization_response += f"&state={state}"
+            
+            # Rebuild the Flow with the same client configuration
+            if settings.GOOGLE_CLIENT_ID and settings.GOOGLE_CLIENT_SECRET:
+                flow = Flow.from_client_config(
+                    {
+                        "web": {
+                            "client_id": settings.GOOGLE_CLIENT_ID,
+                            "client_secret": settings.GOOGLE_CLIENT_SECRET,
+                            "auth_uri": "https://accounts.google.com/o/oauth2/v2/auth",
+                            "token_uri": "https://oauth2.googleapis.com/token",
+                            "redirect_uris": [settings.OAUTH_REDIRECT_URI],
+                        }
+                    },
+                    scopes=["email", "profile"],
+                    redirect_uri=settings.OAUTH_REDIRECT_URI
+                )
+                
+                # Exchange the authorization code for tokens
+                flow.fetch_token(authorization_response=authorization_response)
+                
+                # Get credentials and extract ID token
+                credentials = flow.credentials
+                if credentials and credentials.id_token:
+                    # Verify the ID token and get user info
+                    user_info = auth_manager.verify_google_token(credentials.id_token)
+                    
+                    if user_info:
+                        # Log the user in
+                        auth_manager.login(user_info)
+                        
+                        # Clear query parameters
+                        st.experimental_set_query_params()
+                        
+                        # Rerun the app to show authenticated state
+                        st.rerun()
+                    else:
+                        st.error("❌ Failed to verify Google token. Please try again.")
+                        st.experimental_set_query_params()
+                else:
+                    st.error("❌ Failed to obtain credentials. Please try again.")
+                    st.experimental_set_query_params()
+            else:
+                st.error("❌ OAuth configuration missing. Please contact administrator.")
+                st.experimental_set_query_params()
+                
+        except Exception as e:
+            st.error(f"❌ Authentication failed: {str(e)}")
+            st.experimental_set_query_params()
+            return
     
     # Check authentication
     if not st.session_state.authenticated:
