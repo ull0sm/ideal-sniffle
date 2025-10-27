@@ -15,7 +15,6 @@ from utils.conversation import conversation_manager
 from utils.rate_limit import rate_limiter
 from utils.analytics import analytics_manager
 from google_auth_oauthlib.flow import Flow
-from streamlit_authenticator import Authenticate  # optional, only if using it
 
 
 # Page configuration
@@ -84,10 +83,6 @@ def initialize_app():
             st.warning(f"Knowledge base initialization: {str(e)}")
 
 
-import streamlit as st
-from config import settings
-from utils.auth import auth_manager
-from streamlit_authenticator import Authenticate  # if you use a third-party Streamlit OAuth wrapper
 
 def render_login_page():
     """Render the login page with Google OAuth."""
