@@ -93,6 +93,7 @@ python3 verify.py
 
 **Issue**: "Google OAuth failed"
 - **Solution**: Verify OAuth credentials or use demo mode
+- **Note**: Ensure the authorized redirect URI in Google Cloud Console matches the `OAUTH_REDIRECT_URI` value in your `.env` file (e.g., `http://localhost:8501` for local development)
 
 **Issue**: "Rate limit exceeded"
 - **Solution**: Wait or adjust `RATE_LIMIT_PER_MINUTE` in `.env`
