@@ -14,6 +14,8 @@ from utils.knowledge import retriever
 from utils.conversation import conversation_manager
 from utils.rate_limit import rate_limiter
 from utils.analytics import analytics_manager
+from google_auth_oauthlib.flow import Flow
+from streamlit_authenticator import Authenticate  # optional, only if using it
 
 
 # Page configuration
@@ -84,7 +86,7 @@ def initialize_app():
 
 import streamlit as st
 from config import settings
-from auth import auth_manager
+from utils.auth import auth_manager
 from streamlit_authenticator import Authenticate  # if you use a third-party Streamlit OAuth wrapper
 
 def render_login_page():
