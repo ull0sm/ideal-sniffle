@@ -82,6 +82,11 @@ def initialize_app():
             st.warning(f"Knowledge base initialization: {str(e)}")
 
 
+import streamlit as st
+from config import settings
+from auth import auth_manager
+from streamlit_authenticator import Authenticate  # if you use a third-party Streamlit OAuth wrapper
+
 def render_login_page():
     """Render the login page with Google OAuth."""
     st.markdown('<div class="main-header">✈️ Boeing India Career Chatbot</div>', unsafe_allow_html=True)
@@ -94,33 +99,29 @@ def render_login_page():
         
         st.markdown("---")
         
-        # OAuth configuration
         if settings.GOOGLE_CLIENT_ID and settings.GOOGLE_CLIENT_SECRET:
-            oauth2 = OAuth2Component(
-                settings.GOOGLE_CLIENT_ID,
-                settings.GOOGLE_CLIENT_SECRET,
-                "https://accounts.google.com/o/oauth2/v2/auth",     # Authorization URL
-                "https://oauth2.googleapis.com/token",               # Token URL
-                "https://oauth2.googleapis.com/revoke",              # ✅ Revocation URL
-                "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
-                token_endpoint_auth_method="client_secret_post"      # ✅ Add this
-            )
-            
-            result = oauth2.authorize_button(
-                "Login with Google",
-                settings.OAUTH_REDIRECT_URI,
-                "email profile"
-            )
-            
-            if result and 'token' in result:
-                user_info = auth_manager.verify_google_token(result['token']['id_token'])
-                if user_info:
-                    auth_manager.login(user_info)
-                    st.rerun()
+            # Using Streamlit button for Google OAuth
+            if st.button("Login with Google"):
+                from google_auth_oauthlib.flow import Flow
+                
+                flow = Flow.from_client_config(
+                    {
+                        "web": {
+                            "client_id": settings.GOOGLE_CLIENT_ID,
+                            "client_secret": settings.GOOGLE_CLIENT_SECRET,
+                            "auth_uri": "https://accounts.google.com/o/oauth2/v2/auth",
+                            "token_uri": "https://oauth2.googleapis.com/token",
+                            "redirect_uris": [settings.OAUTH_REDIRECT_URI],
+                        }
+                    },
+                    scopes=["email", "profile"]
+                )
+                
+                auth_url, _ = flow.authorization_url(prompt="consent")
+                st.experimental_set_query_params(next=auth_url)  # Redirect user
         else:
             st.warning("⚠️ Google OAuth not configured. Using demo mode.")
             if st.button("Continue in Demo Mode", type="primary"):
-                # Demo user for testing
                 demo_user_info = {
                     'email': 'demo@example.com',
                     'name': 'Demo User',
