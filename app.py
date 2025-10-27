@@ -99,10 +99,11 @@ def render_login_page():
             oauth2 = OAuth2Component(
                 settings.GOOGLE_CLIENT_ID,
                 settings.GOOGLE_CLIENT_SECRET,
-                "https://accounts.google.com/o/oauth2/v2/auth",
-                "https://oauth2.googleapis.com/token",
-                "https://oauth2.googleapis.com/token",
-                "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
+                "https://accounts.google.com/o/oauth2/v2/auth",     # Authorization URL
+                "https://oauth2.googleapis.com/token",               # Token URL
+                "https://oauth2.googleapis.com/revoke",              # ✅ Revocation URL
+                "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
+                token_endpoint_auth_method="client_secret_post"      # ✅ Add this
             )
             
             result = oauth2.authorize_button(
