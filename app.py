@@ -4,7 +4,6 @@ import streamlit as st
 from streamlit_oauth import OAuth2Component
 import os
 import time
-import urllib.parse
 
 # Import utilities
 from config.settings import settings
@@ -67,6 +66,30 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
+def create_oauth_flow():
+    """Create and return a Google OAuth Flow instance.
+    
+    Returns:
+        Flow: Configured OAuth flow instance, or None if credentials not set.
+    """
+    if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
+        return None
+    
+    return Flow.from_client_config(
+        {
+            "web": {
+                "client_id": settings.GOOGLE_CLIENT_ID,
+                "client_secret": settings.GOOGLE_CLIENT_SECRET,
+                "auth_uri": "https://accounts.google.com/o/oauth2/v2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "redirect_uris": [settings.OAUTH_REDIRECT_URI],
+            }
+        },
+        scopes=["email", "profile"],
+        redirect_uri=settings.OAUTH_REDIRECT_URI
+    )
+
+
 def initialize_app():
     """Initialize the application."""
     # Initialize database
@@ -97,22 +120,10 @@ def render_login_page():
         
         st.markdown("---")
         
-        if settings.GOOGLE_CLIENT_ID and settings.GOOGLE_CLIENT_SECRET:
-            # Create the Google OAuth flow
-            flow = Flow.from_client_config(
-                {
-                    "web": {
-                        "client_id": settings.GOOGLE_CLIENT_ID,
-                        "client_secret": settings.GOOGLE_CLIENT_SECRET,
-                        "auth_uri": "https://accounts.google.com/o/oauth2/v2/auth",
-                        "token_uri": "https://oauth2.googleapis.com/token",
-                        "redirect_uris": [settings.OAUTH_REDIRECT_URI],
-                    }
-                },
-                scopes=["email", "profile"],
-                redirect_uri=settings.OAUTH_REDIRECT_URI
-            )
-            
+        # Create OAuth flow
+        flow = create_oauth_flow()
+        
+        if flow:
             # Generate authorization URL
             auth_url, _ = flow.authorization_url(prompt="consent")
             
@@ -405,21 +416,9 @@ def main():
                 authorization_response += f"&state={state}"
             
             # Rebuild the Flow with the same client configuration
-            if settings.GOOGLE_CLIENT_ID and settings.GOOGLE_CLIENT_SECRET:
-                flow = Flow.from_client_config(
-                    {
-                        "web": {
-                            "client_id": settings.GOOGLE_CLIENT_ID,
-                            "client_secret": settings.GOOGLE_CLIENT_SECRET,
-                            "auth_uri": "https://accounts.google.com/o/oauth2/v2/auth",
-                            "token_uri": "https://oauth2.googleapis.com/token",
-                            "redirect_uris": [settings.OAUTH_REDIRECT_URI],
-                        }
-                    },
-                    scopes=["email", "profile"],
-                    redirect_uri=settings.OAUTH_REDIRECT_URI
-                )
-                
+            flow = create_oauth_flow()
+            
+            if flow:
                 # Exchange the authorization code for tokens
                 flow.fetch_token(authorization_response=authorization_response)
                 
